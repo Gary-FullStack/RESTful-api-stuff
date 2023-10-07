@@ -1,27 +1,67 @@
 const express = require('express');
 const app = express();
 
-app.get("/greetings", (req, res)=> {
-    res.json({hiya:"Hello, stranger"});
+const records = require("./records");
+
+app.use(express.json());
+
+// GET routes
+
+// get all quotes
+app.get("/quotes", async (req, res)=> {
+
+    try{
+        const quotes =  await records.getQuotes();
+        res.json(quotes);
+
+    }catch(err){
+        res.status(500).json({message: err.message})
+    }
+    
+});
+
+// get a specific quote by ID
+app.get("/quotes/:id", async (req, res)=> {
+
+    try{
+        const quote = await records.getQuote(req.params.id);
+        if(quote){
+          res.json(quote);  
+        }else {
+            res.status(404).json({message: "quote not found"})
+        }
+        
+
+    }catch(err){
+        res.status(500).json({message: err.message})
+    }
+    
 });
 
 
+// POST routes
 
-// GET /quotes - return a list of quotes
-app.get("/quotes", (req, res)=> {
-    res.json(data);
+// Add a single quote
+app.post("/quotes", async (req, res) => {
+
+    try{
+        if(req.body.author && req.body.quote){
+            const quote = await records.createQuote({
+                quote: req.body.quote,
+                author: req.body.author 
+            });
+            res.status(201).json(quote);
+
+        }else {
+            res.status(400).json({message :"quote and author required" })
+        }
+        
+
+    }catch(err){
+        res.status(500).json({message: err.message})
+    }
+    
 });
-
-// GET /quotes/:id - return a single quote with the specified id
-app.get("/quotes/:id", (req, res)=> {
-    const quote = data.quotes.find(quote => quote.id == req.params.id);
-    res.json(quote);
-});
-
-
-
-
-
 
 
 
@@ -29,40 +69,3 @@ app.get("/quotes/:id", (req, res)=> {
 
 
 app.listen(3000, () => console.log('Quote API listening on port 3000!'));
-
-
-
-const data = {
-    quotes: [
-        {
-            id:1111, 
-            quote: "The greatest glory in living lies not in never falling, but in rising every time we fall.",
-            author: "Nelson Mandela"
-        },
-        
-        {
-            id:1112,
-            quote: "The way to get started is to quit talking and begin doing.",
-            author: "Walt Disney"
-        },
-
-        {
-            id:1113,
-            quote: "If life were predictable it would cease to be life, and be without flavor.",
-            author: "Eleanor Roosevelt"                       
-        },
-
-        {
-            id:1114,
-            quote: "Life is what happens when you're busy making other plans.",
-            author: "John Lennon"
-        },
-
-        {
-            id:1115,
-            quote: "Spread love everywhere you go. Let no one ever come to you without leaving happier.",
-            author: "Mother Teresa"
-        }
-
-    ]
-}
